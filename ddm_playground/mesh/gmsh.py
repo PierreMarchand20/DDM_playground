@@ -3,7 +3,6 @@ import pathlib
 from dataclasses import dataclass, field
 
 import gmsh
-
 from ddm_playground.mesh.mesh import MeshData
 
 logger = logging.getLogger(__name__)
@@ -66,18 +65,15 @@ class GmshContextManager:
         _, elem_types, elem_node_tags = gmsh.model.mesh.getElements(dim)
         mesh.elements = elem_node_tags[0].reshape(-1, dim + 1) - 1
 
-        # Boundary elements
+        # Elements from user-defined physical groups
         physical_groups = gmsh.model.getPhysicalGroups()
         for dim_pg, tag_pg in physical_groups:
-            if dim_pg == dim - 1:
-                name = gmsh.model.getPhysicalName(dim_pg, tag_pg)
-                _, elem_tags, elem_node_tags = gmsh.model.mesh.getElements(
-                    dim_pg, tag_pg
-                )
-                if elem_node_tags:
-                    n_nodes_per_elem = len(elem_node_tags[0]) // len(elem_tags[0])
-                    elems = elem_node_tags[0].reshape(-1, n_nodes_per_elem) - 1
-                    mesh.boundary_elements[name] = elems
+            name = gmsh.model.getPhysicalName(dim_pg, tag_pg)
+            _, elem_tags, elem_node_tags = gmsh.model.mesh.getElements(dim_pg, tag_pg)
+            if elem_node_tags:
+                n_nodes_per_elem = len(elem_node_tags[0]) // len(elem_tags[0])
+                elems = elem_node_tags[0].reshape(-1, n_nodes_per_elem) - 1
+                mesh.physical_group_elements[(name, dim_pg, tag_pg)] = elems
 
         if partition and partition > 1:
             gmsh.model.mesh.partition(partition)  # metis partition

@@ -1,15 +1,17 @@
-import gmsh
+from itertools import cycle
+
 import matplotlib.pyplot as plt
 
+import gmsh
 from ddm_playground.mesh.gmsh import GmshContextManager, GmshOptions
-from ddm_playground.mesh.plot import plot_mesh, plot_mesh_boundary, plot_mesh_partition
+from ddm_playground.mesh.plot import plot_mesh, plot_submesh
 
 dim = 3
-nb_partition = 5
+nb_partition = 4
 gmsh_options = GmshOptions(mesh_name="mesh")
 
 with GmshContextManager(gmsh_options) as mesh_generator:
-    lc = 0.1  # characteristic length (mesh size)
+    lc = 0.5  # characteristic length (mesh size)
 
     if dim == 1:
         p1 = gmsh.model.geo.addPoint(0, 0, 0, lc)
@@ -34,10 +36,12 @@ with GmshContextManager(gmsh_options) as mesh_generator:
     elif dim == 3:
         cube = gmsh.model.occ.addBox(0, 0, 0, 1, 1, 1)
         gmsh.model.occ.synchronize()
+        gmsh.model.mesh.setSize(gmsh.model.getEntities(0), lc)
 
     # Physical names for boundary
     boundaries = gmsh.model.getEntities(dim=dim - 1)
     for i, (boundary_dim, boundary_tag) in enumerate(boundaries):
+        print(boundary_dim)
         gmsh.model.addPhysicalGroup(dim - 1, [boundary_tag], name=f"boundary_{i}")
 
     mesh = mesh_generator.generate(dim, nb_partition)
@@ -47,19 +51,52 @@ with GmshContextManager(gmsh_options) as mesh_generator:
 
 # matplotlib visualization
 fig = plt.figure()
-if dim == 3:
-    ax = fig.add_subplot(111, projection="3d")
-else:
-    ax = fig.add_subplot(111)
-ax.set_title(f"{dim}D Mesh from Gmsh")
-ax.axis("equal")
-plot_mesh(ax, mesh)
-if dim == 1 or dim == 2:
-    plot_mesh_boundary(ax, mesh)
-if nb_partition > 1:
-    plot_mesh_partition(ax, mesh, 0)
-plt.show()
+ax1 = fig.add_subplot(121, projection="3d") if dim == 3 else fig.add_subplot(121)
+ax2 = fig.add_subplot(122, projection="3d") if dim == 3 else fig.add_subplot(122)
+ax1.set_title(f"{dim}D Mesh from Gmsh with boundaries")
+ax1.axis("equal")
 
-# Data
-nodes = mesh.nodes
-elements = mesh.elements
+ax2.set_title(f"Partitionning of {dim}D Mesh from Gmsh")
+ax2.axis("equal")
+
+# plot_mesh(ax1, mesh)
+plot_mesh(ax2, mesh)
+
+colors = plt.cm.tab10.colors
+color_iter = cycle(colors)
+for (
+    boundary_name,
+    boundary_dim,
+    _,
+), elements in mesh.physical_group_elements.items():
+    plot_submesh(
+        ax1,
+        mesh,
+        boundary_dim,
+        elements,
+        label=boundary_name,
+        color=next(color_iter),
+    )
+
+if nb_partition > 1:
+    plot_submesh(
+        ax2,
+        mesh,
+        dim,
+        mesh.partition_elements[0],
+        label="Subdomain 0",
+        color="red",
+        linewidth=1 if dim == 3 else 2,
+    )
+    plot_submesh(
+        ax2,
+        mesh,
+        dim,
+        mesh.partition_elements[1],
+        label="Subdomain 1",
+        color="green",
+        linewidth=1 if dim == 3 else 2,
+    )
+ax1.legend()
+ax2.legend()
+plt.show()
