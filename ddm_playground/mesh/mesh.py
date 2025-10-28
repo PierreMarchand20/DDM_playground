@@ -34,9 +34,11 @@ class MeshData:
     physical_group_elements : dict[tuple[str, int, int | None], np.ndarray]
         Mapping that associates groups of elements with a physical tag.
         The key is a tuple `(group_name, group_dim, group_tag)` where:
-            - `group_name` (str): descriptive label (e.g. "boundary", "interface").
-            - `group_dim` (int): dimension of the elements in the physical group.
-            - `group_tag` (int | None): optional identifier.
+
+        - `group_name` (str): descriptive label (e.g. "boundary", "interface").
+        - `group_dim` (int): dimension of the elements in the physical group.
+        - `group_tag` (int | None): optional identifier.
+
         The value is an array of element indices belonging to that group.
 
     partitions_elements : dict[int, np.ndarray]

@@ -20,9 +20,10 @@ def add_overlap(
     This function takes an existing mesh with disjoint partitions
     and extends each partition by a given number of element layers
     (`overlap`) to create overlapping subdomains. It also computes:
-      - the neighboring partitions,
-      - the local-to-global node mappings,
-      - and the intersections between overlapping subdomains.
+
+    - the neighboring partitions,
+    - the local-to-global node mappings,
+    - and the intersections between overlapping subdomains.
 
     Parameters
     ----------
