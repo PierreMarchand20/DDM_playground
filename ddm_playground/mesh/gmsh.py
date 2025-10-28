@@ -2,10 +2,10 @@ import logging
 import pathlib
 from dataclasses import dataclass, field
 
+import gmsh
 import numpy as np
 
-import gmsh
-from ddm_playground.mesh.mesh import MeshData
+from ddm_playground.mesh.data import MeshData
 
 logger = logging.getLogger(__name__)
 

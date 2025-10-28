@@ -3,7 +3,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from ddm_playground.mesh.mesh import MeshData
+from ddm_playground.mesh.data import MeshData
 
 
 def add_overlap(

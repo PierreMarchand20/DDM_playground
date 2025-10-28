@@ -5,7 +5,7 @@ import matplotlib.tri as mtri
 from matplotlib.axes import Axes
 from mpl_toolkits.mplot3d import Axes3D
 
-from ddm_playground.mesh.mesh import MeshData
+from ddm_playground.mesh.data import MeshData
 
 logger = logging.getLogger(__name__)
 
