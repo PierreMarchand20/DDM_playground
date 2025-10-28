@@ -1,13 +1,18 @@
+import logging
 from itertools import cycle
 
 import matplotlib.pyplot as plt
 
 import gmsh
 from ddm_playground.mesh.gmsh import GmshContextManager, GmshOptions
+from ddm_playground.mesh.overlap import add_overlap
 from ddm_playground.mesh.plot import plot_mesh, plot_submesh
 
+logging.getLogger().setLevel(logging.INFO)
+
 dim = 2
-nb_partition = 4
+nb_partition = 3
+additional_overlap = 1
 gmsh_options = GmshOptions(mesh_name="mesh")
 
 with GmshContextManager(gmsh_options) as mesh_generator:
@@ -45,57 +50,65 @@ with GmshContextManager(gmsh_options) as mesh_generator:
 
     mesh = mesh_generator.generate(dim, nb_partition)
 
-    # GMSH visualization
-    mesh_generator.fltk()
+submeshes, neighbors, intersections, _ = add_overlap(mesh, additional_overlap)
 
 # matplotlib visualization
+ncols = 2
+nrow = 2 if nb_partition > 2 else 1
 fig = plt.figure()
-ax1 = fig.add_subplot(121, projection="3d") if dim == 3 else fig.add_subplot(121)
-ax2 = fig.add_subplot(122, projection="3d") if dim == 3 else fig.add_subplot(122)
-ax1.set_title(f"{dim}D Mesh from Gmsh with boundaries")
-ax1.axis("equal")
-
-ax2.set_title(f"Partitionning of {dim}D Mesh from Gmsh")
-ax2.axis("equal")
-
-plot_mesh(ax1, mesh)
-plot_mesh(ax2, mesh)
+x = mesh.nodes[:, 0]
+y = mesh.nodes[:, 1]
+z = mesh.nodes[:, 2]
 
 colors = plt.cm.tab10.colors
-color_iter = cycle(colors)
-for (
-    boundary_name,
-    boundary_dim,
-    _,
-), elements in mesh.physical_group_elements.items():
+
+for partition_index in range(min(nb_partition, 4)):
+    color_iter = cycle(colors)
+    ax = (
+        fig.add_subplot(nrow, ncols, partition_index + 1, projection="3d")
+        if dim == 3
+        else fig.add_subplot(nrow, ncols, partition_index + 1)
+    )
+    plot_mesh(ax, mesh)
+
+    # Partition
     plot_submesh(
-        ax1,
+        ax,
         mesh,
-        boundary_dim,
-        elements,
-        label=boundary_name,
+        dim,
+        mesh.partitions_elements[partition_index],
         color=next(color_iter),
+        label=f"Partition {partition_index}",
+        # linestyle="none",
+        markersize=5,
     )
 
-if nb_partition > 1:
-    plot_submesh(
-        ax2,
-        mesh,
-        dim,
-        mesh.partitions_elements[0],
-        label="Subdomain 0",
-        color="red",
-        linewidth=1 if dim == 3 else 2,
+    # Subdomain with overlap
+    plot_mesh(
+        ax,
+        submeshes[partition_index],
+        linestyle="none",
+        label=f"Nodes in subdomain {partition_index}",
+        color=next(color_iter),
+        marker="x",
+        markersize=10,
     )
-    plot_submesh(
-        ax2,
-        mesh,
-        dim,
-        mesh.partitions_elements[1],
-        label="Subdomain 1",
-        color="green",
-        linewidth=1 if dim == 3 else 2,
-    )
-ax1.legend()
-ax2.legend()
+
+    # Physical boundary of subdomain
+    for (
+        boundary_name,
+        boundary_dim,
+        _,
+    ), elements in submeshes[partition_index].physical_group_elements.items():
+        plot_submesh(
+            ax,
+            submeshes[partition_index],
+            boundary_dim,
+            elements,
+            label=boundary_name,
+            color=next(color_iter),
+        )
+    ax.legend()
+    ax.set_title(f"Subdomain {partition_index}")
+    ax.axis("equal")
 plt.show()
