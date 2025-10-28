@@ -9,10 +9,10 @@ ddm\_playground.mesh.gmsh
    :undoc-members:
    :show-inheritance:
 
-ddm\_playground.mesh.mesh
+ddm\_playground.mesh.data
 -------------------------
 
-.. automodule:: ddm_playground.mesh.mesh
+.. automodule:: ddm_playground.mesh.data
    :members:
    :undoc-members:
    :show-inheritance:

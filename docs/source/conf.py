@@ -9,7 +9,7 @@ import sys
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "ddm_playground"
+project = "DDM_playground"
 copyright = "2025, Pierre Marchand"
 author = "Pierre Marchand"
 release = "0.1.0"
@@ -27,7 +27,19 @@ extensions = [
 sys.path.insert(0, os.path.abspath("../src"))
 
 templates_path = ["_templates"]
-exclude_patterns = []
+exclude_patterns = ["_build", "links.rst"]
+
+# Smart quotes
+smartquotes = True
+
+# Auto section
+autosectionlabel_prefix_document = True
+
+# make rst_epilog a variable, so you can add other epilog parts to it
+rst_epilog = ""
+# Read link all targets from file
+with open("links.rst") as f:
+    rst_epilog += f.read()
 
 # Avoid duplicate index entries when documenting classes multiple times
 # Use :noindex: for repeated references
