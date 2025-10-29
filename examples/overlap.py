@@ -1,14 +1,14 @@
-import logging
 from itertools import cycle
 
-import matplotlib.pyplot as plt
-
 import gmsh
+import matplotlib.pyplot as plt
+import matplotlib.tri as mtri
+import numpy as np
+from matplotlib import cm
+
 from ddm_playground.mesh.gmsh import GmshContextManager, GmshOptions
 from ddm_playground.mesh.overlap import add_overlap
 from ddm_playground.mesh.plot import plot_mesh, plot_submesh
-
-logging.getLogger().setLevel(logging.INFO)
 
 dim = 2
 nb_partition = 3
@@ -50,7 +50,9 @@ with GmshContextManager(gmsh_options) as mesh_generator:
 
     mesh = mesh_generator.generate(dim, nb_partition)
 
-submeshes, neighbors, intersections, _ = add_overlap(mesh, additional_overlap)
+submeshes, neighbors, intersections, partition_of_unity, _ = add_overlap(
+    mesh, additional_overlap
+)
 
 # matplotlib visualization
 ncols = 2
@@ -111,4 +113,63 @@ for partition_index in range(min(nb_partition, 4)):
     ax.legend()
     ax.set_title(f"Subdomain {partition_index}")
     ax.axis("equal")
+
+if dim < 3:
+    fig = plt.figure()
+    for partition_index in range(min(nb_partition, 4)):
+        color_iter = cycle(colors)
+        ax = fig.add_subplot(nrow, ncols, partition_index + 1)
+
+        if dim == 1:
+            # Partition
+            plot_submesh(
+                ax,
+                mesh,
+                dim,
+                mesh.partitions_elements[partition_index],
+                color=next(color_iter),
+                label=f"Partition {partition_index}",
+                # linestyle="none",
+                markersize=5,
+            )
+
+            # Subdomain with overlap
+            plot_mesh(
+                ax,
+                submeshes[partition_index],
+                linestyle="none",
+                label=f"Nodes in subdomain {partition_index}",
+                color=next(color_iter),
+                marker="x",
+                markersize=10,
+            )
+            local_x = submeshes[partition_index].nodes[:, 0]
+            perm = np.argsort(local_x)
+            print(partition_index, local_x, partition_of_unity[partition_index])
+            ax.plot(
+                local_x[perm],
+                partition_of_unity[partition_index][perm],
+                marker="o",
+                color=next(color_iter),
+                label="Partition of unity",
+            )
+            ax.legend()
+
+        elif dim == 2:
+            norm = plt.Normalize(vmin=0, vmax=1)
+            cmap = plt.get_cmap("viridis", nb_partition)
+            local_x = submeshes[partition_index].nodes[:, 0]
+            local_y = submeshes[partition_index].nodes[:, 1]
+            triang = mtri.Triangulation(
+                local_x, local_y, submeshes[partition_index].elements
+            )
+            ax.tripcolor(triang, partition_of_unity[partition_index])
+            plt.colorbar(
+                cm.ScalarMappable(norm=norm, cmap=cmap),
+                ax=ax,
+                label="Partition of unity",
+            )
+
+        plot_mesh(ax, mesh)
+        ax.set_title(f"Subdomain {partition_index}")
 plt.show()

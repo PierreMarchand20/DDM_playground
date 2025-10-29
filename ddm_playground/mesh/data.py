@@ -59,7 +59,7 @@ class MeshData:
     physical_group_elements: dict[tuple[str, int, int | None], np.ndarray] = field(
         default_factory=dict
     )
-    partitions_elements: dict[int, dict[str, np.ndarray]] = field(default_factory=dict)
+    partitions_elements: dict[int, np.ndarray] = field(default_factory=dict)
 
     def __post_init__(self):
         # Ensure that elements has the right shape if empty

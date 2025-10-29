@@ -2,6 +2,7 @@ import copy
 import logging
 
 import matplotlib.tri as mtri
+import numpy as np
 from matplotlib.axes import Axes
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -106,7 +107,7 @@ def plot_submesh(
     ax: Axes | Axes3D,
     mesh: MeshData,
     dim: int,
-    elements: list[list[int]],
+    elements: np.ndarray,
     **kwargs,
 ) -> None:
     """
@@ -134,8 +135,9 @@ def plot_submesh(
         - 2: faces (triangles in 3D)
         - 3: tetrahedra (3D volume elements)
 
-    elements : list of list of int
-        List of elements to plot. Each element is a list of node indices
+    elements : np.ndarray
+        Integer array of shape (n_elements, n_vertices_per_element).
+        containing the elements to plot. Each element is a list of node indices
         defining the connectivity.
 
     **kwargs : dict, optional

@@ -48,10 +48,11 @@ From a partition stored in a :py:class:`~ddm_playground.mesh.data.MeshData` obje
 
 .. literalinclude:: ../../examples/overlap.py
    :language: python
-   :lines: 53
+   :lines: 53-55
 
 Outputs are
 
 - :code:`submeshes`: a dictionnary whose keys are the subdomains numbers, and values are their associated :py:class:`~ddm_playground.mesh.data.MeshData`. In particular, it contains the restriction to their physical groups, and a new physical group corresponding to the new boundary of the subdomain called "interface".
 - :code:`neighbors`: a dictionnary whose keys are the subdomains numbers, and values are arrays containing the subdomains numbers corresponding of the neighboring subdomains.
 - :code:`intersections`: a dictionnary whose keys are the subdomains numbers, and values are the list of the local nodes shared with each neighbors.
+- :code:`partition_of_unity`: a dictionnary whose keys are the subdomains numbers, and values are local arrays to the subdomain defining a partition of unity. 

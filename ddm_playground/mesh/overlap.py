@@ -13,8 +13,9 @@ def add_overlap(
     dict[int, list[int]],
     dict[int, list[list[int]]],
     dict[int, np.ndarray],
+    dict[int, np.ndarray],
 ]:
-    """
+    r"""
     Build overlapping subdomains from a partitioned mesh.
 
     This function takes an existing mesh with disjoint partitions
@@ -54,9 +55,26 @@ def add_overlap(
         Each intersection is represented as a list of *local node indices*
         within the overlapping subdomain.
 
+    partition_of_unity : dict[int, np.ndarray]
+        For each subdomain :math:`i`, array containing the local partition of unity.
+        Each array corresponds to the diagonal matrix :math:`\mathbf{D}_i`, 
+        whose diagonal entries are defined as
+
+        .. math::
+
+            (\mathbf{D}_i)_{k,k}=
+            \left\{
+            \begin{aligned}
+            \frac{1}{c_k}& \quad \text{if the } k \text{-th node belongs to a partition without overlap,} \\
+            0 &\quad \text{otherwise.}
+            \end{aligned}
+            \right.
+
+        Here, :math:`c_k` denotes the number of partitions in which the :math:`k` th node appears.
+
     ovr_subdomain_to_global : dict[int, np.ndarray]
         For each subdomain, array mapping local node indices
-        back to their global indices in the original mesh.
+        to their global indices in the original mesh.
 
     Notes
     -----
@@ -94,6 +112,9 @@ def add_overlap(
     neighbors: dict[int, list] = dict()
     nodes_partition: dict[int, np.ndarray] = dict()
     intersections: dict[int, list[list]] = dict()
+    partition_of_unity: dict[int, np.ndarray] = dict()
+    global_to_ovr_subdomain: dict[int, np.ndarray] = dict()
+    partition_to_ovr_subdomain: dict[int, np.ndarray] = dict()
     ovr_subdomain_to_global: dict[int, np.ndarray] = dict()
     elements_in_subdomain: dict[int, np.ndarray] = dict()
     meshes: dict[int, MeshData] = dict()
@@ -152,13 +173,21 @@ def add_overlap(
                         neighbors_sets[partition_id].add(partition_index)
 
         neighbors[partition_id] = list(neighbors_sets[partition_id])
+
         #  Get the global to overlapping subdomain numbering
-        global_to_ovr_subdomain = np.full((nb_nodes), fill_value=-1, dtype=int)
+        global_to_ovr_subdomain[partition_id] = np.full(
+            (nb_nodes), fill_value=-1, dtype=int
+        )
         count = 0
         for user_dof in range(nb_nodes):
             if nodes_partition[partition_id][user_dof]:
-                global_to_ovr_subdomain[user_dof] = count
+                global_to_ovr_subdomain[partition_id][user_dof] = count
                 count = count + 1
+
+        # Get the partition to overlapping subdomain numbering
+        partition_to_ovr_subdomain[partition_id] = global_to_ovr_subdomain[
+            partition_id
+        ][np.where(initial_nodes_partition[partition_id])[0]]
 
         # Get the elements on the subdomain
         nb_elements_on_subdomain = elements_partition.sum()
@@ -171,8 +200,8 @@ def add_overlap(
         for user_elt in range(nb_elements):
             if elements_partition[user_elt]:
                 elements_in_subdomain[partition_id][count] = global_to_ovr_subdomain[
-                    global_elements[user_elt]
-                ]
+                    partition_id
+                ][global_elements[user_elt]]
                 count = count + 1
 
         # Get the overlapping subdomain to global numbering
@@ -181,9 +210,9 @@ def add_overlap(
             (size_ovr_subdomain), fill_value=-1, dtype=int
         )
         for user_dof in range(nb_nodes):
-            if global_to_ovr_subdomain[user_dof] != -1:
+            if global_to_ovr_subdomain[partition_id][user_dof] != -1:
                 ovr_subdomain_to_global[partition_id][
-                    global_to_ovr_subdomain[user_dof]
+                    global_to_ovr_subdomain[partition_id][user_dof]
                 ] = user_dof
 
         # Set MeshData
@@ -197,8 +226,10 @@ def add_overlap(
         for physical_group_name, elements in mesh.physical_group_elements.items():
             new_elements = []
             for element in elements:
-                if np.all(global_to_ovr_subdomain[element[:]] != -1):
-                    new_elements.append(global_to_ovr_subdomain[element[:]])
+                if np.all(global_to_ovr_subdomain[partition_id][element[:]] != -1):
+                    new_elements.append(
+                        global_to_ovr_subdomain[partition_id][element[:]]
+                    )
             if len(new_elements) != 0:
                 meshes[partition_id].physical_group_elements[physical_group_name] = (
                     np.array(new_elements)
@@ -216,7 +247,7 @@ def add_overlap(
                 ):
                     mask = nodes_partition[partition_id][global_elements[j, :]]
                     elements_on_interface.append(
-                        global_to_ovr_subdomain[global_elements[j, mask]]
+                        global_to_ovr_subdomain[partition_id][global_elements[j, mask]]
                     )
 
                 elements_partition[j] = (
@@ -265,8 +296,37 @@ def add_overlap(
             test = []
             for i in range(0, nb_nodes):
                 if part_overlap_neighbors[i]:
-                    intersection.append(global_to_ovr_subdomain[i])
+                    intersection.append(global_to_ovr_subdomain[partition_id][i])
                     test.append(i)
             intersections[partition_id].append(intersection)
 
-    return (meshes, neighbors, intersections, ovr_subdomain_to_global)
+    node_multiplicity = np.full(len(mesh.nodes), fill_value=0, dtype=int)
+    for partition_elements in mesh.partitions_elements.values():
+        node_multiplicity[np.unique(np.concatenate(partition_elements))[:]] += 1
+
+    for subdomain_id, subdomain in meshes.items():
+        partition_of_unity[subdomain_id] = np.full(
+            len(subdomain.nodes), fill_value=0, dtype=float
+        )
+        temp = np.full(
+            len(partition_to_ovr_subdomain[subdomain_id]), fill_value=0, dtype=float
+        )
+        temp = (
+            1.0
+            / node_multiplicity[
+                ovr_subdomain_to_global[subdomain_id][
+                    partition_to_ovr_subdomain[subdomain_id][:]
+                ]
+            ]
+        )
+        partition_of_unity[subdomain_id][
+            partition_to_ovr_subdomain[subdomain_id][:]
+        ] = temp
+
+    return (
+        meshes,
+        neighbors,
+        intersections,
+        partition_of_unity,
+        ovr_subdomain_to_global,
+    )
