@@ -1,8 +1,8 @@
 from itertools import cycle
 
+import gmsh
 import matplotlib.pyplot as plt
 
-import gmsh
 from ddm_playground.mesh.gmsh import GmshContextManager, GmshOptions
 from ddm_playground.mesh.plot import plot_mesh, plot_submesh
 
@@ -77,16 +77,17 @@ for (
         color=next(color_iter),
     )
 
+plot_submesh(
+    ax2,
+    mesh,
+    dim,
+    mesh.partitions_elements[0],
+    label="Subdomain 0",
+    color="red",
+    linewidth=1 if dim == 3 else 2,
+)
+
 if nb_partition > 1:
-    plot_submesh(
-        ax2,
-        mesh,
-        dim,
-        mesh.partitions_elements[0],
-        label="Subdomain 0",
-        color="red",
-        linewidth=1 if dim == 3 else 2,
-    )
     plot_submesh(
         ax2,
         mesh,

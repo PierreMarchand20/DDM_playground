@@ -255,9 +255,10 @@ def add_overlap(
                     or (nodes_partition[partition_id][global_elements[j, k]])
                 )
         # print(elements_on_interface)
-        meshes[partition_id].physical_group_elements[
-            ("interface", mesh.dim - 1, None)
-        ] = np.array(elements_on_interface)
+        if len(elements_on_interface):
+            meshes[partition_id].physical_group_elements[
+                ("interface", mesh.dim - 1, None)
+            ] = np.array(elements_on_interface)
 
         # Increase overlap in each neighbor domain
         intersections[partition_id] = []

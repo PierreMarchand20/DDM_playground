@@ -55,7 +55,7 @@ submeshes, neighbors, intersections, partition_of_unity, _ = add_overlap(
 )
 
 # matplotlib visualization
-ncols = 2
+ncols = 2 if nb_partition > 1 else 1
 nrow = 2 if nb_partition > 2 else 1
 fig = plt.figure()
 x = mesh.nodes[:, 0]
@@ -100,7 +100,7 @@ for partition_index in range(min(nb_partition, 4)):
     for (
         boundary_name,
         boundary_dim,
-        _,
+        _unused,
     ), elements in submeshes[partition_index].physical_group_elements.items():
         plot_submesh(
             ax,

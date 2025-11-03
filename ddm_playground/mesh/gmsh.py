@@ -98,7 +98,7 @@ class GmshContextManager:
                     new_elem_node_tags[0].reshape(-1, n_nodes_per_elem)
                 )
 
-        if partition and partition > 1:
+        if partition:
             gmsh.model.mesh.partition(partition)  # metis partition
 
         # Get information from partitions
