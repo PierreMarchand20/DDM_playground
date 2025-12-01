@@ -4,6 +4,16 @@ Quickstart
 Installation
 ------------
 
+Pypi
+####
+
+.. code-block:: bash
+
+    pip install ddm_playground
+
+Manually
+########
+
 Either download or git clone this repository
 
 .. code-block:: bash
