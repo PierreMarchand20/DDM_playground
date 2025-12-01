@@ -30,7 +30,7 @@ In the folder of this repository, do:
 Mesh generation
 ---------------
 
-To generate a mesh, and optionally its partition, you can use the context manager :py:class:`~ddm_playground.mesh.gmsh.GmshContextManager` which defines the correct environment to call `GMSH`_ API to define your geometry. In the following example, where we define a 1D line, a mesh generator is defined line 6, and is used line 16 to generate the mesh and its partition.
+To generate a mesh, and optionally its partition, you can use the context manager :py:class:`~ddm_playground.mesh.gmsh.GmshContextManager` which defines the correct environment to call `GMSH`_ API to define your geometry. In the following example, where we define a 1D line, a mesh generator is defined line 9, and is used line 16 to generate the mesh and its partition.
 
 
 .. literalinclude:: ../../examples/simple_mesh.py
@@ -50,7 +50,7 @@ From a partition stored in a :py:class:`~ddm_playground.mesh.data.MeshData` obje
 
 .. literalinclude:: ../../examples/overlap.py
    :language: python
-   :lines: 53-55
+   :lines: 53
 
 Outputs are
 
