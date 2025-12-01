@@ -4,13 +4,13 @@ version = "0.1.0"
 description = "Lightweight package to experiment with domain decomposition method."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["gmsh>=4.14.1", "matplotlib>=3.10.7"]
+dependencies = ["gmsh>=4.0", "matplotlib>=3.10.7"]
 
 [project.optional-dependencies]
 dev = ["ruff>=0.14.1", "sphinx>=7.0", "furo", "sphinx-autodoc-typehints"]
 
 [tool.ruff]
-line-length = 88
+line-length = 120
 indent-width = 4
 exclude = []
 

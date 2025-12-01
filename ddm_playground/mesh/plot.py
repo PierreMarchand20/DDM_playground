@@ -79,9 +79,7 @@ def plot_mesh(ax: Axes | Axes3D, mesh: MeshData, **kwargs) -> None:
         ax.plot(triang.x, triang.y, **style_without_line)
 
     elif mesh.dim == 3:
-        ax.scatter(
-            mesh.nodes[:, 0], mesh.nodes[:, 1], mesh.nodes[:, 2], color="k", s=10
-        )
+        ax.scatter(mesh.nodes[:, 0], mesh.nodes[:, 1], mesh.nodes[:, 2], color="k", s=10)
         for tet in mesh.elements:
             verts = mesh.nodes[tet]
             edges = [
@@ -93,7 +91,7 @@ def plot_mesh(ax: Axes | Axes3D, mesh: MeshData, **kwargs) -> None:
                 [verts[2], verts[3]],
             ]
             for e in edges:
-                ax.plot(*zip(*e), color="b", linewidth=0.5)
+                ax.plot(*zip(*e, strict=True), color="b", linewidth=0.5)
 
         ax.set_xlabel("X")
         ax.set_ylabel("Y")
@@ -192,9 +190,7 @@ def plot_submesh(
                     [verts[2], verts[3]],
                 ]
             for e in edges:
-                ax.plot(*zip(*e), **style)
+                ax.plot(*zip(*e, strict=True), **style)
                 style["label"] = None
     else:
-        raise ValueError(
-            f"Unsupported mesh dimension {mesh.dim} with submesh dimension {dim}"
-        )
+        raise ValueError(f"Unsupported mesh dimension {mesh.dim} with submesh dimension {dim}")

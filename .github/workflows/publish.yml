@@ -1,0 +1,93 @@
+name: Publish Python 🐍 distributions 📦 to PyPI and TestPyPI
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:   
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+            python-version: '3.13' 
+            cache: 'pip' # caching pip dependencies
+    
+      - name: Install build tools
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install build
+      
+      - name: Build sdist and wheel
+        run: |
+            python3 -m build --sdist --wheel --outdir dist/ .
+      
+      - name: Verify distribution metadata
+        run: |
+          pip install twine
+          python3 -m twine check dist/*
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish-testpypi:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write
+
+    # Dedicated environments with protections for publishing are strongly recommended.
+    environment:
+      name: testpypi
+      # OPTIONAL: uncomment and update to include your PyPI project URL in the deployment status:
+      url: https://test.pypi.org/project/ddm-playground/
+
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  publish-pypi:
+    runs-on: ubuntu-latest    
+    needs: build
+        
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
+        
+    # Dedicated environments with protections for publishing are strongly recommended.
+    environment:
+      name: pypi
+      # OPTIONAL: uncomment and update to include your PyPI project URL in the deployment status:
+      url: https://pypi.org/project/ddm-playground/
+
+    steps:
+      - name: Retrieve release distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish release distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

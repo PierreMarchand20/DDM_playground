@@ -45,14 +45,12 @@ with GmshContextManager(gmsh_options) as mesh_generator:
 
     # Physical names for boundary
     boundaries = gmsh.model.getEntities(dim=dim - 1)
-    for i, (boundary_dim, boundary_tag) in enumerate(boundaries):
+    for i, (_, boundary_tag) in enumerate(boundaries):
         gmsh.model.addPhysicalGroup(dim - 1, [boundary_tag], name=f"boundary_{i}")
 
     mesh = mesh_generator.generate(dim, nb_partition)
 
-submeshes, neighbors, intersections, partition_of_unity, _ = add_overlap(
-    mesh, additional_overlap
-)
+submeshes, neighbors, intersections, partition_of_unity, _ = add_overlap(mesh, additional_overlap)
 
 # matplotlib visualization
 ncols = 2 if nb_partition > 1 else 1
@@ -160,9 +158,7 @@ if dim < 3:
             cmap = plt.get_cmap("viridis", nb_partition)
             local_x = submeshes[partition_index].nodes[:, 0]
             local_y = submeshes[partition_index].nodes[:, 1]
-            triang = mtri.Triangulation(
-                local_x, local_y, submeshes[partition_index].elements
-            )
+            triang = mtri.Triangulation(local_x, local_y, submeshes[partition_index].elements)
             ax.tripcolor(triang, partition_of_unity[partition_index])
             plt.colorbar(
                 cm.ScalarMappable(norm=norm, cmap=cmap),

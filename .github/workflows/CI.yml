@@ -1,0 +1,40 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: read # access to check out code and install dependencies
+
+jobs:
+  test: 
+    name: Test Python package
+    runs-on: ubuntu-latest
+
+    steps:
+        - uses: actions/checkout@v3
+        - uses: actions/setup-python@v6
+          with:
+            python-version: '3.13' 
+            cache: 'pip' # caching pip dependencies
+
+        - name: Set up dependencies
+          run: |
+            python3 -m pip install --upgrade pip
+            python3 -m pip install .[dev]
+
+        - name: Check with ruff
+          run: |
+            ruff check ddm_playground/ examples/
+
+        - name: Check building a binary wheel and a source tarball
+          run: |
+            python3 -m pip install twine build --user
+            python3 -m build --sdist --wheel --outdir dist/ .
+            python3 -m twine check dist/*

@@ -40,7 +40,7 @@ with GmshContextManager(gmsh_options) as mesh_generator:
 
     # Physical names for boundary
     boundaries = gmsh.model.getEntities(dim=dim - 1)
-    for i, (boundary_dim, boundary_tag) in enumerate(boundaries):
+    for i, (_, boundary_tag) in enumerate(boundaries):
         gmsh.model.addPhysicalGroup(dim - 1, [boundary_tag], name=f"boundary_{i}")
 
     mesh = mesh_generator.generate(dim, nb_partition)
