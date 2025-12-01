@@ -1,9 +1,20 @@
-.. ddm_playground documentation master file, created by
-   sphinx-quickstart on Tue Oct 28 14:22:23 2025.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Quickstart
+==========
 
-.. include:: ../../README.rst
+DDM_playground is a lightweight Python package to support domain decomposition methods. It provides
+
+- a `GMSH`_ context manager :py:class:`~ddm_playground.mesh.gmsh.GmshContextManager`,
+- a data class for a mesh and its partition (without overlap) :py:class:`~ddm_playground.mesh.data.MeshData`,
+- a utility fonction to add overlap to a partitioned mesh :py:class:`~ddm_playground.mesh.overlap.add_overlap`,
+- utility functions to plot with meshes, and submeshes (of dimension lower or equal to initial mesh) with `matplotlib`_, respectively :py:class:`~ddm_playground.mesh.plot.plot_mesh` and :py:class:`~ddm_playground.mesh.plot.plot_submesh`.
+
+.. raw:: latex
+
+         \tableofcontents
+         
+.. only:: not latex
+
+   **Contents**
 
 .. toctree::
    :maxdepth: 2
@@ -11,6 +22,7 @@
    
    introduction
    ddm_playground
+   PDF version <https://pmarchand.pages.math.cnrs.fr/ddm_playground_documentation/DDM_playground.pdf>
 
 
 
