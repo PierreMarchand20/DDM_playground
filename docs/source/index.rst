@@ -21,7 +21,7 @@ DDM_playground is a lightweight Python package to support domain decomposition m
    
    introduction
    ddm_playground
-   PDF version <https://pmarchand.pages.math.cnrs.fr/ddm_playground_documentation/DDM_playground.pdf>
+   PDF version <https://pmarchand.pages.math.cnrs.fr/ddm_playground_documentation/ddm_playground.pdf>
 
 
 
