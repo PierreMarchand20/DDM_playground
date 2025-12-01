@@ -14,12 +14,16 @@ jobs:
   test: 
     name: Test Python package
     runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: [3.10, 3.11, 3.12, 3.13]
 
     steps:
         - uses: actions/checkout@v3
         - uses: actions/setup-python@v6
           with:
-            python-version: '3.13' 
+            python-version: ${{ matrix.python-version }}
             cache: 'pip' # caching pip dependencies
 
         - name: Set up dependencies
