@@ -3,7 +3,7 @@ name = "ddm-playground"
 version = "0.1.0"
 description = "Lightweight package to experiment with domain decomposition method."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 dependencies = ["gmsh>=4.0", "matplotlib>=3.10.7"]
 
 [project.optional-dependencies]
