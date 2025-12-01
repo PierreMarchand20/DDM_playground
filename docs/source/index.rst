@@ -1,5 +1,5 @@
-Quickstart
-==========
+DDM_playground
+==============
 
 DDM_playground is a lightweight Python package to support domain decomposition methods. It provides
 
@@ -18,7 +18,6 @@ DDM_playground is a lightweight Python package to support domain decomposition m
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
    
    introduction
    ddm_playground
