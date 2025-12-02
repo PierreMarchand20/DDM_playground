@@ -43,6 +43,11 @@ The resulting :code:`mesh` variable is a :py:class:`~ddm_playground.mesh.data.Me
 - the nodes and elements of the mesh generated with `GMSH`_,
 - the elements of the partitions created by `METIS`_ via `GMSH`_ and stored in a dictionnary whose keys are the partitions numbers.
 
+.. plot:: _static/simple_mesh.py
+    :width: 100%
+    :include-source: false
+
+
 Domain decomposition with overlap
 ---------------------------------
 
@@ -58,3 +63,7 @@ Outputs are
 - :code:`neighbors`: a dictionnary whose keys are the subdomains numbers, and values are arrays containing the subdomains numbers corresponding of the neighboring subdomains.
 - :code:`intersections`: a dictionnary whose keys are the subdomains numbers, and values are the list of the local nodes shared with each neighbors.
 - :code:`partition_of_unity`: a dictionnary whose keys are the subdomains numbers, and values are local arrays to the subdomain defining a partition of unity. 
+
+.. plot:: _static/overlap.py
+    :width: 100%
+    :include-source: false

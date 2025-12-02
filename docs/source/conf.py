@@ -21,6 +21,7 @@ extensions = [
     "sphinx.ext.autodoc",  # automatically document docstrings
     "sphinx.ext.napoleon",  # Google/NumPy style docstrings
     "sphinx_autodoc_typehints",  # shows type hints
+    "matplotlib.sphinxext.plot_directive",
 ]
 
 
@@ -53,3 +54,8 @@ napoleon_google_docstring = False
 
 html_theme = "furo"
 html_static_path = ["_static"]
+
+plot_rcparams = {
+    "figure.figsize": (6, 4),
+    "figure.dpi": 150,
+}
