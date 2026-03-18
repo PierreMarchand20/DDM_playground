@@ -65,7 +65,7 @@ def add_overlap(
             (\mathbf{D}_i)_{k,k}=
             \left\{
             \begin{aligned}
-            \frac{1}{c_k}& \quad \text{if the } k \text{-th node belongs to a partition without overlap,} \\
+            \frac{1}{c_k}& \quad \text{if the } k \text{-th node belongs to the ith partition without overlap,} \\
             0 &\quad \text{otherwise.}
             \end{aligned}
             \right.
@@ -101,9 +101,7 @@ def add_overlap(
     initial_nodes_partition: dict[int, np.ndarray] = dict()
     for partition_id, partition_elements in mesh.partitions_elements.items():
         #  Tag nodes with partition id
-        initial_nodes_partition[partition_id] = np.full(
-            (nb_nodes), fill_value=False, dtype=bool
-        )
+        initial_nodes_partition[partition_id] = np.full((nb_nodes), fill_value=False, dtype=bool)
         for elt in partition_elements:
             for index in elt:
                 initial_nodes_partition[partition_id][index] = True
@@ -120,9 +118,7 @@ def add_overlap(
     meshes: dict[int, MeshData] = dict()
 
     for partition_id, _ in mesh.partitions_elements.items():
-        nodes_partition[partition_id] = copy.deepcopy(
-            initial_nodes_partition[partition_id]
-        )
+        nodes_partition[partition_id] = copy.deepcopy(initial_nodes_partition[partition_id])
         elements_partition = np.full((nb_elements), fill_value=False, dtype=bool)
         for _ in range(overlap):
             #  Tag elements including part_overlap's nodes: P1 -> P0
@@ -130,8 +126,7 @@ def add_overlap(
                 for k in range(n_nodes_per_elem):
                     # if global_elements[j, k] >= 0:
                     elements_partition[j] = (
-                        elements_partition[j]
-                        or (nodes_partition[partition_id][global_elements[j, k]])
+                        elements_partition[j] or (nodes_partition[partition_id][global_elements[j, k]])
                     )
 
             #  Tag nodes including elements from elts : P0 -> P1
@@ -139,8 +134,7 @@ def add_overlap(
                 for k in range(n_nodes_per_elem):
                     # if global_elements[j, k] >= 0:
                     nodes_partition[partition_id][global_elements[j, k]] = (
-                        nodes_partition[partition_id][global_elements[j, k]]
-                        or elements_partition[j]
+                        nodes_partition[partition_id][global_elements[j, k]] or elements_partition[j]
                     )
 
         # We go twice as far to find neighbours
@@ -151,33 +145,26 @@ def add_overlap(
                 for k in range(n_nodes_per_elem):
                     # if global_elements[j, k] >= 0:
                     elements_partition_find_neighbors[j] = (
-                        elements_partition_find_neighbors[j]
-                        or (node_partition_find_neighbors[global_elements[j, k]])
+                        elements_partition_find_neighbors[j] or (node_partition_find_neighbors[global_elements[j, k]])
                     )
 
             for j in range(nb_elements):
                 for k in range(n_nodes_per_elem):
                     # if global_elements[j, k] >= 0:
                     node_partition_find_neighbors[global_elements[j, k]] = (
-                        node_partition_find_neighbors[global_elements[j, k]]
-                        or elements_partition_find_neighbors[j]
+                        node_partition_find_neighbors[global_elements[j, k]] or elements_partition_find_neighbors[j]
                     )
 
         for user_dof in range(nb_nodes):
             if node_partition_find_neighbors[user_dof]:
                 for partition_index in range(nb_partitions):
-                    if (
-                        partition_index != partition_id
-                        and initial_nodes_partition[partition_index][user_dof]
-                    ):
+                    if partition_index != partition_id and initial_nodes_partition[partition_index][user_dof]:
                         neighbors_sets[partition_id].add(partition_index)
 
         neighbors[partition_id] = list(neighbors_sets[partition_id])
 
         #  Get the global to overlapping subdomain numbering
-        global_to_ovr_subdomain[partition_id] = np.full(
-            (nb_nodes), fill_value=-1, dtype=int
-        )
+        global_to_ovr_subdomain[partition_id] = np.full((nb_nodes), fill_value=-1, dtype=int)
         count = 0
         for user_dof in range(nb_nodes):
             if nodes_partition[partition_id][user_dof]:
@@ -185,9 +172,9 @@ def add_overlap(
                 count = count + 1
 
         # Get the partition to overlapping subdomain numbering
-        partition_to_ovr_subdomain[partition_id] = global_to_ovr_subdomain[
-            partition_id
-        ][np.where(initial_nodes_partition[partition_id])[0]]
+        partition_to_ovr_subdomain[partition_id] = global_to_ovr_subdomain[partition_id][
+            np.where(initial_nodes_partition[partition_id])[0]
+        ]
 
         # Get the elements on the subdomain
         nb_elements_on_subdomain = elements_partition.sum()
@@ -199,21 +186,17 @@ def add_overlap(
         count = 0
         for user_elt in range(nb_elements):
             if elements_partition[user_elt]:
-                elements_in_subdomain[partition_id][count] = global_to_ovr_subdomain[
-                    partition_id
-                ][global_elements[user_elt]]
+                elements_in_subdomain[partition_id][count] = global_to_ovr_subdomain[partition_id][
+                    global_elements[user_elt]
+                ]
                 count = count + 1
 
         # Get the overlapping subdomain to global numbering
         size_ovr_subdomain = sum(nodes_partition[partition_id])
-        ovr_subdomain_to_global[partition_id] = np.full(
-            (size_ovr_subdomain), fill_value=-1, dtype=int
-        )
+        ovr_subdomain_to_global[partition_id] = np.full((size_ovr_subdomain), fill_value=-1, dtype=int)
         for user_dof in range(nb_nodes):
             if global_to_ovr_subdomain[partition_id][user_dof] != -1:
-                ovr_subdomain_to_global[partition_id][
-                    global_to_ovr_subdomain[partition_id][user_dof]
-                ] = user_dof
+                ovr_subdomain_to_global[partition_id][global_to_ovr_subdomain[partition_id][user_dof]] = user_dof
 
         # Set MeshData
         meshes[partition_id] = MeshData(
@@ -227,13 +210,9 @@ def add_overlap(
             new_elements = []
             for element in elements:
                 if np.all(global_to_ovr_subdomain[partition_id][element[:]] != -1):
-                    new_elements.append(
-                        global_to_ovr_subdomain[partition_id][element[:]]
-                    )
+                    new_elements.append(global_to_ovr_subdomain[partition_id][element[:]])
             if len(new_elements) != 0:
-                meshes[partition_id].physical_group_elements[physical_group_name] = (
-                    np.array(new_elements)
-                )
+                meshes[partition_id].physical_group_elements[physical_group_name] = np.array(new_elements)
 
         # Compute interface
         elements_on_interface = []
@@ -242,32 +221,24 @@ def add_overlap(
                 # If new element
                 if (
                     not elements_partition[j]
-                    and np.sum(nodes_partition[partition_id][global_elements[j, :]])
-                    == mesh.dim
+                    and np.sum(nodes_partition[partition_id][global_elements[j, :]]) == mesh.dim
                 ):
                     mask = nodes_partition[partition_id][global_elements[j, :]]
-                    elements_on_interface.append(
-                        global_to_ovr_subdomain[partition_id][global_elements[j, mask]]
-                    )
+                    elements_on_interface.append(global_to_ovr_subdomain[partition_id][global_elements[j, mask]])
 
-                elements_partition[j] = (
-                    elements_partition[j]
-                    or (nodes_partition[partition_id][global_elements[j, k]])
-                )
+                elements_partition[j] = elements_partition[j] or (nodes_partition[partition_id][global_elements[j, k]])
         # print(elements_on_interface)
         if len(elements_on_interface):
-            meshes[partition_id].physical_group_elements[
-                ("interface", mesh.dim - 1, None)
-            ] = np.array(elements_on_interface)
+            meshes[partition_id].physical_group_elements[("interface", mesh.dim - 1, None)] = np.array(
+                elements_on_interface
+            )
 
         # Increase overlap in each neighbor domain
         intersections[partition_id] = []
         for neighbor_index in neighbors[partition_id]:
             part_overlap_neighbors = np.full((nb_nodes), fill_value=False, dtype=bool)
             for user_dof in range(nb_nodes):
-                part_overlap_neighbors[user_dof] = initial_nodes_partition[
-                    neighbor_index
-                ][user_dof]
+                part_overlap_neighbors[user_dof] = initial_nodes_partition[neighbor_index][user_dof]
 
             for _ in range(0, overlap):
                 # Tag des elements qui contiennent les dofs du voisin: P1 -> P0
@@ -276,23 +247,17 @@ def add_overlap(
                 for j in range(nb_elements):
                     for k in range(n_nodes_per_elem):
                         # if elemConnectivity[j, k] >= 0:
-                        elements_partition[j] = (
-                            elements_partition[j]
-                            or (part_overlap_neighbors[global_elements[j, k]])
-                        )
+                        elements_partition[j] = elements_partition[j] or (part_overlap_neighbors[global_elements[j, k]])
 
                 #  Tag de mes dofs qui sont contenus dans les elements: P0 -> P1
                 for j in range(nb_elements):
                     for k in range(n_nodes_per_elem):
                         # if elemConnectivity[j, k] >= 0:
                         part_overlap_neighbors[global_elements[j, k]] = (
-                            part_overlap_neighbors[global_elements[j, k]]
-                            or elements_partition[j]
+                            part_overlap_neighbors[global_elements[j, k]] or elements_partition[j]
                         )
 
-            part_overlap_neighbors = (
-                nodes_partition[partition_id] & part_overlap_neighbors
-            )
+            part_overlap_neighbors = nodes_partition[partition_id] & part_overlap_neighbors
             intersection = []
             test = []
             for i in range(0, nb_nodes):
@@ -306,23 +271,12 @@ def add_overlap(
         node_multiplicity[np.unique(np.concatenate(partition_elements))[:]] += 1
 
     for subdomain_id, subdomain in meshes.items():
-        partition_of_unity[subdomain_id] = np.full(
-            len(subdomain.nodes), fill_value=0, dtype=float
-        )
-        temp = np.full(
-            len(partition_to_ovr_subdomain[subdomain_id]), fill_value=0, dtype=float
-        )
+        partition_of_unity[subdomain_id] = np.full(len(subdomain.nodes), fill_value=0, dtype=float)
+        temp = np.full(len(partition_to_ovr_subdomain[subdomain_id]), fill_value=0, dtype=float)
         temp = (
-            1.0
-            / node_multiplicity[
-                ovr_subdomain_to_global[subdomain_id][
-                    partition_to_ovr_subdomain[subdomain_id][:]
-                ]
-            ]
+            1.0 / node_multiplicity[ovr_subdomain_to_global[subdomain_id][partition_to_ovr_subdomain[subdomain_id][:]]]
         )
-        partition_of_unity[subdomain_id][
-            partition_to_ovr_subdomain[subdomain_id][:]
-        ] = temp
+        partition_of_unity[subdomain_id][partition_to_ovr_subdomain[subdomain_id][:]] = temp
 
     return (
         meshes,

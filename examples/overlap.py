@@ -159,7 +159,7 @@ if dim < 3:
             local_x = submeshes[partition_index].nodes[:, 0]
             local_y = submeshes[partition_index].nodes[:, 1]
             triang = mtri.Triangulation(local_x, local_y, submeshes[partition_index].elements)
-            ax.tripcolor(triang, partition_of_unity[partition_index])
+            ax.tripcolor(triang, partition_of_unity[partition_index], shading="gouraud")
             plt.colorbar(
                 cm.ScalarMappable(norm=norm, cmap=cmap),
                 ax=ax,

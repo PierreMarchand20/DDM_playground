@@ -77,10 +77,7 @@ class GmshContextManager:
         mesh.nodes = node_coords.reshape(-1, 3)[used_indices]
 
         # Reindex elements, WARNING, no need to -1 because of reindexing
-        new_elem_node_tags = [
-            np.array([node_tag_to_new_index[t] for t in elem_nodes])
-            for elem_nodes in elem_node_tags
-        ]
+        new_elem_node_tags = [np.array([node_tag_to_new_index[t] for t in elem_nodes]) for elem_nodes in elem_node_tags]
         mesh.elements = new_elem_node_tags[0].reshape(-1, dim + 1)
 
         # Elements from user-defined physical groups
@@ -91,11 +88,10 @@ class GmshContextManager:
             if elem_node_tags:
                 n_nodes_per_elem = len(elem_node_tags[0]) // len(elem_tags[0])
                 new_elem_node_tags = [
-                    np.array([node_tag_to_new_index[t] for t in elem_nodes])
-                    for elem_nodes in elem_node_tags
+                    np.array([node_tag_to_new_index[t] for t in elem_nodes]) for elem_nodes in elem_node_tags
                 ]
-                mesh.physical_group_elements[(name, dim_pg, tag_pg)] = (
-                    new_elem_node_tags[0].reshape(-1, n_nodes_per_elem)
+                mesh.physical_group_elements[(name, dim_pg, tag_pg)] = new_elem_node_tags[0].reshape(
+                    -1, n_nodes_per_elem
                 )
 
         if partition:
@@ -109,28 +105,21 @@ class GmshContextManager:
 
             partitions = gmsh.model.getPartitions(e[0], e[1])
             if len(partitions) and dim == entity_dim:
-                logging.info(
-                    "Entity " + str(e) + " of type " + gmsh.model.getType(e[0], e[1])
-                )
-                logging.info(" - Partition(s): " + str(partitions))
-                logging.info(" - Parent: " + str(gmsh.model.getParent(e[0], e[1])))
-                logging.info(" - Boundary: " + str(gmsh.model.getBoundary([e])))
+                logger.info("Entity " + str(e) + " of type " + gmsh.model.getType(e[0], e[1]))
+                logger.info(" - Partition(s): " + str(partitions))
+                logger.info(" - Parent: " + str(gmsh.model.getParent(e[0], e[1])))
+                logger.info(" - Boundary: " + str(gmsh.model.getBoundary([e])))
 
                 partition_id = tag % partition
 
                 # Get the mesh elements for the partition:
-                elem_types, elem_tags, elem_node_tags = gmsh.model.mesh.getElements(
-                    entity_dim, tag
-                )
+                elem_types, elem_tags, elem_node_tags = gmsh.model.mesh.getElements(entity_dim, tag)
 
                 #
                 new_elem_node_tags = [
-                    np.array([node_tag_to_new_index[t] for t in elem_nodes])
-                    for elem_nodes in elem_node_tags
+                    np.array([node_tag_to_new_index[t] for t in elem_nodes]) for elem_nodes in elem_node_tags
                 ]
-                mesh.partitions_elements[partition_id] = new_elem_node_tags[0].reshape(
-                    -1, dim + 1
-                )
+                mesh.partitions_elements[partition_id] = new_elem_node_tags[0].reshape(-1, dim + 1)
 
         return mesh
 
