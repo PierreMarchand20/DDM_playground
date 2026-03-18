@@ -39,11 +39,11 @@ class MeshData:
         - `group_dim` (int): dimension of the elements in the physical group.
         - `group_tag` (int | None): optional identifier.
 
-        The value is an array of element indices belonging to that group.
+        The value is an array of elements belonging to that group.
 
     partitions_elements : dict[int, np.ndarray]
         Partitioned subdomains of the mesh.
-        Maps a partition ID (int) to the array of element indices associated with the subdomain.
+        Maps a partition ID (int) to the array of elements associated with the subdomain.
 
     Methods
     -------
@@ -56,9 +56,7 @@ class MeshData:
     dim: int
     nodes: np.ndarray = field(default_factory=lambda: np.empty((0, 3)))
     elements: np.ndarray = field(default_factory=lambda: np.empty((0, 0), dtype=int))
-    physical_group_elements: dict[tuple[str, int, int | None], np.ndarray] = field(
-        default_factory=dict
-    )
+    physical_group_elements: dict[tuple[str, int, int | None], np.ndarray] = field(default_factory=dict)
     partitions_elements: dict[int, np.ndarray] = field(default_factory=dict)
 
     def __post_init__(self):
